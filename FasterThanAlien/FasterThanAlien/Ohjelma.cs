@@ -1,17 +1,20 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
-static class Ohjelma
+/// <summary>
+/// The main class.
+/// </summary>
+public static class Program
 {
-#if WINDOWS || XBOX
-    static void Main(string[] args)
-    {
-        using (FasterThanAlien game = new FasterThanAlien())
-        {
-#if !DEBUG
-            game.IsFullScreen = true;
-#endif
-            game.Run();
-        }
-    }
-#endif
+	/// <summary>
+	/// The main entry point for the application.
+	/// </summary>
+	[STAThread]
+	static void Main ()
+	{
+		using (var peli = new FasterThanAlien())
+			peli.Run ();
+	}
 }
+

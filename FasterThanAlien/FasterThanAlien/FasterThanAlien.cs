@@ -3,11 +3,21 @@ using System.Collections.Generic;
 using Jypeli;
 using Jypeli.Assets;
 using Jypeli.Controls;
-using Jypeli.Effects;
 using Jypeli.Widgets;
+
+
+public static class ExtensionMethods
+{
+	public static bool SeesObject(this PhysicsObject po, GameObject target, Predicate<GameObject> isObstacle)
+	{
+		return false;
+	}
+}   
+
 
 public class FasterThanAlien : PhysicsGame
 {
+
     /* Game constants (movement, graphics) */
     const int QUEEN_MANUAL_MOVE_SPEED = 1000;
     const int ALIEN_WANDER_SPEED = 60;
@@ -97,7 +107,7 @@ public class FasterThanAlien : PhysicsGame
     #region initialization
     public override void Begin()
     {
-        //SetWindowSize(1366, 768);
+        SetWindowSize(1366, 768);
         ShowIntro();
     }
 
@@ -226,31 +236,31 @@ public class FasterThanAlien : PhysicsGame
     void LoadAnimationsAndImages()
     {
         Image spawnGridImage = LoadImage("spawn");
-        spawnIdleAnimation = new Animation(new Image[] { spawnGridImage.Area(0, 0, 15, 15), spawnGridImage.Area(16, 0, 31, 15) });
+        //spawnIdleAnimation = new Animation(new Image[] { spawnGridImage.Area(0, 0, 15, 15), spawnGridImage.Area(16, 0, 31, 15) });
         spawnIdleAnimation.FPS = 3;
         spawnIdleAnimation.IsPlaying = true;
 
         Image alienGridImage = LoadImage("alien");
-        alienIdleAnimation = new Animation(new Image[] { alienGridImage.Area(0, 0, 15, 15), alienGridImage.Area(16, 0, 31, 15) });
+		//alienIdleAnimation = new Animation(new Image[] { alienGridImage.Area(0, 0, 15, 15), alienGridImage.Area(16, 0, 31, 15) });
         alienIdleAnimation.FPS = 3;
         alienIdleAnimation.IsPlaying = true;
 
         Image queenGridImage = LoadImage("queen");
-        queenIdleAnimation = new Animation(new Image[] {
+        /*queenIdleAnimation = new Animation(new Image[] {
             queenGridImage.Area(0, 0, 23, 23),
             queenGridImage.Area(24, 0, 47, 23),
             queenGridImage.Area(48, 0, 71, 23)});
         queenIdleAnimation.FPS = 4;
-        queenIdleAnimation.IsPlaying = true;
+        queenIdleAnimation.IsPlaying = true;*/
 
         Image crewGridImage = LoadImage("crew");
-        crewIdleAnimation = new Animation(new Image[] { crewGridImage.Area(0, 0, 15, 15), crewGridImage.Area(16, 0, 31, 15) });
+        /*crewIdleAnimation = new Animation(new Image[] { crewGridImage.Area(0, 0, 15, 15), crewGridImage.Area(16, 0, 31, 15) });
         crewIdleAnimation.FPS = 2;
         crewIdleAnimation.IsPlaying = true;
         deadCrewAnimation = new Animation(new Image[] { 
             crewGridImage.Area(16*0, 16*1, 16*0+15, 16*1+15),
             crewGridImage.Area(16*1, 16*1, 16*1+15, 16*1+15) });
-        deadCrewAnimation.FPS = 2;
+        deadCrewAnimation.FPS = 2;*/
         
 
         doorImage = LoadImage("door");
@@ -363,7 +373,7 @@ public class FasterThanAlien : PhysicsGame
 
         // Compose some functionlality
         GameObject alienSkin = new GameObject(w, h);
-        alienSkin.Animation = spawnIdleAnimation;
+        //alienSkin.Animation = spawnIdleAnimation;
         alienSkin.Tag = "skin";
         alien.Add(alienSkin);
         alien.Tag = "spawn";
@@ -395,7 +405,7 @@ public class FasterThanAlien : PhysicsGame
 
         // Compose some functionlality
         GameObject crewSkin = new GameObject(w, h);
-        crewSkin.Animation = crewIdleAnimation;
+        //crewSkin.Animation = crewIdleAnimation;
         crewSkin.Tag = "skin";
         crew.Add(crewSkin);
         MakeCritterWander(crew, CREW_WANDER_SPEED);
@@ -408,10 +418,32 @@ public class FasterThanAlien : PhysicsGame
 
     void CreateAfterburner(Vector pos, double w, double h)
     {
+#if MONOJYPELI
+		Image flameImage = LoadImage("flames");
+		GameObject flame = new GameObject(flameImage.Width, flameImage.Height);
+		flame.Image = flameImage;
+		flame.Position = pos;
+		Timer flickerTimer = new Timer();
+		flickerTimer.Interval = 0.2;
+		flickerTimer.Timeout += () => {
+			// Toggle size so that the flame appears to flicker
+			if (flame.Width>flameImage.Width)
+			{
+				flame.Width = flameImage.Width*1.0;
+				flame.Height = flameImage.Width*1.0;
+			}
+			else
+			{
+				flame.Width = flameImage.Width*1.2;
+				flame.Height = flameImage.Width*1.2;
+			}
+		};
+#else
         Flame flame = new Flame(LoadImage("flames"));
         flame.Angle = Angle.FromDegrees(0);
         flame.Position = pos;
         Add(flame);
+#endif
     }
     #endregion
 
@@ -629,7 +661,7 @@ public class FasterThanAlien : PhysicsGame
         {
             if ((string)alien.Tag == "spawn")
             {
-                skin.Animation = alienIdleAnimation;
+                //skin.Animation = alienIdleAnimation;
                 skin.Size = new Vector(TILE_SIZE * 0.75, TILE_SIZE * 0.75);
                 alien.Tag = "alien";
                 alien.Size = new Vector(TILE_SIZE * 0.75, TILE_SIZE - 4);
@@ -643,7 +675,7 @@ public class FasterThanAlien : PhysicsGame
             if (alien == queen && (string)alien.Tag == "alien" && isNesting)
             {
                 // Does not fit into thin corridors anymore!
-                skin.Animation = queenIdleAnimation;
+                //skin.Animation = queenIdleAnimation;
                 skin.Size = new Vector(TILE_SIZE * 0.6, TILE_SIZE * 0.6);
                 alien.Tag = "queen";
                 alien.Size = new Vector(TILE_SIZE * 1.4, TILE_SIZE * 1.4);
@@ -696,7 +728,7 @@ public class FasterThanAlien : PhysicsGame
 
     void CheckForBodiesInTheNest()
     {
-        if (!isNesting || queen.IsDestroyed || queen.Tag != "queen")
+        if (!isNesting || queen.IsDestroyed || (string)queen.Tag != "queen")
             return;
 
         double closestDistance = 0;
@@ -704,7 +736,7 @@ public class FasterThanAlien : PhysicsGame
         
         if (closestBody != null && closestDistance<NEST_SIZE)
         {
-            GetObjectSkin(closestBody).Animation.Start();
+            //GetObjectSkin(closestBody).Animation.Start();
             Timer.SingleShot(SPAWN_INCUBATION_TIME, () => SpawnHatches(closestBody));
         }
     }
@@ -719,8 +751,8 @@ public class FasterThanAlien : PhysicsGame
 
             bool isGoodForSpawn =
                 body is PhysicsObject && // is PO
-                (body as PhysicsObject).IgnoresCollisionResponse == false && // is FRESH
-                !GetObjectSkin(body).Animation.IsPlaying; // is not already incubating
+					(body as PhysicsObject).IgnoresCollisionResponse == false; // is FRESH
+                //!GetObjectSkin(body).Animation.IsPlaying; // is not already incubating
 
             if (isGoodForSpawn && (closestBody == null || distance < closestDistance))
             {
@@ -733,7 +765,7 @@ public class FasterThanAlien : PhysicsGame
     void SpawnHatches(GameObject fromHost)
     {
         (fromHost as PhysicsObject).IgnoresCollisionResponse = true;
-        GetObjectSkin(fromHost).Animation.Stop();
+        //GetObjectSkin(fromHost).Animation.Stop();
         PhysicsObject spawn = SpawnSpawn(TILE_SIZE, TILE_SIZE);
         spawn.Position = fromHost.Position;
         MakeCritterWander(spawn, ALIEN_WANDER_SPEED);
@@ -962,7 +994,7 @@ public class FasterThanAlien : PhysicsGame
         
         GameObject bodySkin = new GameObject(TILE_SIZE, TILE_SIZE);
         bodySkin.Tag = "skin";
-        bodySkin.Animation = new Animation( deadCrewAnimation );
+        //bodySkin.Animation = new Animation( deadCrewAnimation );
         body.Add(bodySkin);
 
         body.Restitution = 0.1;
