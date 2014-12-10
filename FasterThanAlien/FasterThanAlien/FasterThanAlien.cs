@@ -763,9 +763,10 @@ public class FasterThanAlien : PhysicsGame
             double closestDistance = 0;
             GameObject closestBody = GetClosestBody(queen.Position, out closestDistance);
             if (closestBody != null && closestBody is PhysicsObject &&
-                closestDistance < TILE_SIZE && RandomGen.NextBool())
+                closestDistance < TILE_SIZE)
             {
-                ((PhysicsObject)closestBody).Push(direction / 10);
+				Vector towardsAlien = (controlledAlien.Position - closestBody.Position).Normalize()*direction.Magnitude;
+				((PhysicsObject)closestBody).Push(towardsAlien / 8);
             }
         }
     }
